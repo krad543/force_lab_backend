@@ -51,9 +51,11 @@ public class FeedbackService {
                         HttpStatus.NOT_FOUND,
                         "Тренировка не найдена"));
 
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneId.of("Asia/Yakutsk"));
+
         System.out.println("========== FEEDBACK DEBUG ==========");
         System.out.println("TRAINING DATE = " + training.getTrainingDate());
-        System.out.println("NOW           = " + LocalDateTime.now());
+        System.out.println("NOW           = " + now);
         System.out.println("DURATION      = " + training.getDurationMinutes());
 
         LocalDateTime endTime = training.getTrainingDate().plusMinutes(
@@ -65,7 +67,7 @@ public class FeedbackService {
         System.out.println("END TIME      = " + endTime);
         System.out.println("====================================");
 
-        if (endTime.isAfter(LocalDateTime.now())) {
+        if (endTime.isAfter(now)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Тренировка ещё не завершена");
