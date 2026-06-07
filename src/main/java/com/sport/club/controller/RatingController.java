@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @CrossOrigin(origins = {
         "http://localhost:5173",
-        "https://force-lab.vercel.app"
+        "https://force-lab.vercel.app",
+        "https://force-lab-front.vercel.app"
 })
 public class RatingController {
 

@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = {
         "http://localhost:5173",
-        "https://force-lab.vercel.app"
+        "https://force-lab.vercel.app",
+        "https://force-lab-front.vercel.app"
 })
 @RestController
 @RequestMapping("/api/auth")
