@@ -14,7 +14,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/feedback")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://force-lab.vercel.app"
+})
 public class FeedbackController {
 
     private final FeedbackService feedbackService;

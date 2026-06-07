@@ -15,7 +15,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/athletes")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://force-lab.vercel.app"
+})
 public class AthleteStatusController {
 
     private final AthleteRepository athleteRepository;

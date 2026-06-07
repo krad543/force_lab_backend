@@ -11,7 +11,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
 @RequestMapping("/api/sse")
-@CrossOrigin
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://force-lab.vercel.app"
+})
 public class SseController {
 
 

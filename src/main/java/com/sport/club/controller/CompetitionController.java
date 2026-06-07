@@ -16,7 +16,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/competitions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://force-lab.vercel.app"
+})
 public class CompetitionController {
 
     private final CompetitionRepository competitionRepository;

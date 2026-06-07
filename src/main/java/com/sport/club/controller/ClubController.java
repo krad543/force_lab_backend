@@ -14,7 +14,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/clubs")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://force-lab.vercel.app"
+})
 public class ClubController {
 
     private final ClubRepository clubRepository;
