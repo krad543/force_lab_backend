@@ -13,50 +13,86 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .cors(cors -> cors.configurationSource(request -> {
-                    var corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.setAllowedOriginPatterns(List.of(
+                    CorsConfiguration config = new CorsConfiguration();
+
+                    config.setAllowedOriginPatterns(List.of(
                             "http://localhost:5173",
                             "https://force-lab.vercel.app",
-                            "https://force-lab-front.vercel.app"
+                            "https://force-lab-front.vercel.app",
+                            "https://*.vercel.app"
                     ));
-                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    corsConfiguration.setAllowedHeaders(List.of("*"));
-                    corsConfiguration.setAllowCredentials(true);
-                    return corsConfiguration;
+
+                    config.setAllowedMethods(List.of(
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE",
+                            "PATCH",
+                            "OPTIONS"
+                    ));
+
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setExposedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    config.setMaxAge(3600L);
+
+                    return config;
                 }))
+
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // AUTH
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+
+                        // SSE
+                        .requestMatchers("/api/sse/subscribe").permitAll()
+
+                        // PUBLIC API
                         .requestMatchers("/api/trainings/upcoming").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/trainings/upcoming").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/trainings/active-for-marking").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/trainings/completed").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/trainings/all").permitAll()
+
+                        // PRIVATE API
                         .requestMatchers("/api/trainings/my-with-status").authenticated()
-                        .requestMatchers("/api/sse/subscribe").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess
+
+                .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+                .addFilterBefore(
+                        jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
