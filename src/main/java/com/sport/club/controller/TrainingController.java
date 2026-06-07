@@ -30,6 +30,7 @@ public class TrainingController {
         return ResponseEntity.ok(trainingService.getUpcomingTrainings());
     }
 
+
     @PostMapping
     public ResponseEntity<TrainingResponse> createTraining(
             @RequestBody CreateTrainingRequest request,
@@ -176,6 +177,11 @@ public class TrainingController {
     @GetMapping("/completed")
     public ResponseEntity<List<TrainingResponse>> getCompletedTrainings() {
         return ResponseEntity.ok(trainingService.getCompletedTrainings());
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<List<TrainingResponse>> getAllTrainings() {
+        return ResponseEntity.ok(trainingService.getAllTrainings());
     }
 
     @GetMapping("/my-with-status")
