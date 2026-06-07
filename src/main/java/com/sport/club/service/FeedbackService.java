@@ -47,14 +47,28 @@ public class FeedbackService {
         }
 
         Training training = trainingRepository.findById(attendance.getTrainingId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Тренировка не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Тренировка не найдена"));
 
-        // Конец тренировки = дата + длительность
+        System.out.println("========== FEEDBACK DEBUG ==========");
+        System.out.println("TRAINING DATE = " + training.getTrainingDate());
+        System.out.println("NOW           = " + LocalDateTime.now());
+        System.out.println("DURATION      = " + training.getDurationMinutes());
+
         LocalDateTime endTime = training.getTrainingDate().plusMinutes(
-                training.getDurationMinutes() != null ? training.getDurationMinutes() : 60
+                training.getDurationMinutes() != null
+                        ? training.getDurationMinutes()
+                        : 60
         );
+
+        System.out.println("END TIME      = " + endTime);
+        System.out.println("====================================");
+
         if (endTime.isAfter(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Тренировка ещё не завершена");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Тренировка ещё не завершена");
         }
 
         String status = attendance.getStatus();

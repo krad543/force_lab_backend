@@ -39,11 +39,17 @@ public class FeedbackController {
      * Получить фидбек по attendanceId (спортсмен или тренер)
      */
     @GetMapping("/attendance/{attendanceId}")
-    public ResponseEntity<FeedbackDTO.Response> getFeedbackByAttendance(
+    public ResponseEntity<?> getFeedbackByAttendance(
             @PathVariable UUID attendanceId,
             @AuthenticationPrincipal User currentUser) {
-        FeedbackDTO.Response response = feedbackService.getFeedbackByAttendance(attendanceId, currentUser);
-        if (response == null) return ResponseEntity.notFound().build();
+
+        FeedbackDTO.Response response =
+                feedbackService.getFeedbackByAttendance(attendanceId, currentUser);
+
+        if (response == null) {
+            return ResponseEntity.ok().build();
+        }
+
         return ResponseEntity.ok(response);
     }
 
