@@ -178,7 +178,7 @@ public class TrainingController {
     public ResponseEntity<List<TrainingResponse>> getCompletedTrainings() {
         return ResponseEntity.ok(trainingService.getCompletedTrainings());
     }
-    
+
     @GetMapping("/all")
     public ResponseEntity<List<TrainingResponse>> getAllTrainings() {
         return ResponseEntity.ok(trainingService.getAllTrainings());

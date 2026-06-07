@@ -15,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,7 +34,8 @@ public class TrainingService {
 
     @Transactional(readOnly = true)
     public List<TrainingResponse> getUpcomingTrainings() {
-        List<Training> trainings = trainingRepository.findUpcomingTrainings(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Yakutsk"));
+        List<Training> trainings = trainingRepository.findUpcomingTrainings(now);
         return trainings.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -72,9 +75,12 @@ public class TrainingService {
         if (existingAttendance.isPresent()) {
             TrainingAttendance attendance = existingAttendance.get();
 
-            if ("CANCELLED".equals(attendance.getStatus())) {
+            if ("CANCELLED".equals(attendance.getStatus())) {attendance.setMarkedAt(
+                    LocalDateTime.now(
+                            ZoneId.of("Asia/Yakutsk")
+                    )
+            );
                 attendance.setStatus("REGISTERED");
-                attendance.setMarkedAt(LocalDateTime.now());
                 attendanceRepository.save(attendance);
 
 
@@ -141,7 +147,10 @@ public class TrainingService {
     }
 
     public List<TrainingResponse> getActiveForMarking() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now =
+                LocalDateTime.now(
+                        ZoneId.of("Asia/Yakutsk")
+                );
         LocalDateTime twentyFourHoursAgo = now.minusHours(24);
 
         return trainingRepository.findAll()
@@ -154,7 +163,10 @@ public class TrainingService {
 
 
     public List<TrainingResponse> getCompletedTrainings() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now =
+                LocalDateTime.now(
+                        ZoneId.of("Asia/Yakutsk")
+                );
         LocalDateTime twentyFourHoursAgo = now.minusHours(24);
 
         return trainingRepository.findAll()
@@ -166,19 +178,28 @@ public class TrainingService {
     }
     @Transactional
     public void markAttendance(UUID trainingId, UUID athleteId, String status) {
+
         Training training = trainingRepository.findById(trainingId)
                 .orElseThrow(() -> new RuntimeException("Тренировка не найдена"));
-        LocalDateTime now = LocalDateTime.now();
-        if (training.getTrainingDate().isAfter(LocalDateTime.now())) {
+
+        LocalDateTime now = LocalDateTime.now(
+                ZoneId.of("Asia/Yakutsk")
+        );
+
+        // До начала тренировки нельзя
+        if (training.getTrainingDate().isAfter(now)) {
             throw new RuntimeException("Нельзя отмечать посещение до начала тренировки");
         }
+
+        // После 24 часов нельзя
         if (training.getTrainingDate().plusHours(24).isBefore(now)) {
             throw new RuntimeException("Время для отметки посещения истекло (24 часа)");
         }
 
         TrainingAttendance attendance = attendanceRepository
                 .findByTrainingIdAndAthleteId(trainingId, athleteId)
-                .orElseThrow(() -> new RuntimeException("Спортсмен не записан на эту тренировку"));
+                .orElseThrow(() ->
+                        new RuntimeException("Спортсмен не записан на эту тренировку"));
 
         attendance.setStatus(status);
         attendanceRepository.save(attendance);
@@ -189,11 +210,19 @@ public class TrainingService {
             System.out.println("Ошибка обновления достижений: " + e.getMessage());
         }
 
+        sseController.sendEvent(
+                athleteId.toString(),
+                "attendance-marked",
+                Map.of(
+                        "status", status,
+                        "message", "Тренер отметил ваше посещение: " + status
+                )
+        );
 
-        sseController.sendEvent(athleteId.toString(), "attendance-marked",
-                Map.of("status", status, "message", "Тренер отметил ваше посещение: " + status));
-        sseController.sendEventToAll("training-updated",
-                Map.of("message", "Обновление статуса посещения"));
+        sseController.sendEventToAll(
+                "training-updated",
+                Map.of("message", "Обновление статуса посещения")
+        );
     }
     public List<Map<String, Object>> getAthleteTrainingsWithStatus(UUID athleteId) {
         List<TrainingAttendance> attendances = attendanceRepository.findByAthleteId(athleteId);
